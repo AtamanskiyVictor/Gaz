@@ -15,18 +15,20 @@ uint8_t TIMER_SEC = 0;
 uint8_t TIMER_MINUTE = 0;
 uint8_t TIMER_CORRECT = 0;
 
+int temp=0;
+
 void LED_ON(void){ PORTD&=~(1<<4); }
 void LED_OFF(void){ PORTD|=(1<<4); }
 void GAZ_ON(void){ PORTD&=~(1<<5); LED_ON();}
 void GAZ_OFF(void){ PORTD|=(1<<5); LED_OFF();}
 
 //DS18B20
-#define MAXSENSORS 3
+#define MAXSENSORS 2
 uint8_t gSensorIDs[MAXSENSORS][OW_ROMCODE_SIZE];
 uint8_t nSensors;
 uint8_t curSensors=0;
 int DS18B20SensorsValues[MAXSENSORS];
-int FLAG_DS18B20;
+int FLAG_DS18B20=1;
 int i;
 //DS18B20
 uint8_t search_sensors(void){
@@ -78,7 +80,7 @@ ISR(TIMER1_OVF_vect) { // 100 Hz
 
 int main(void){
 	// Watchdog
-	wdt_enable(WDTO_1S);
+	//wdt_enable(WDTO_1S);
 
 	// set the clock speed to 8MHz
 	// set the clock prescaler. First write CLKPCE to enable setting of clock the
@@ -94,10 +96,6 @@ int main(void){
 
 	DDRD|=(1<<(5));
 	DDRD|=(1<<(4));
-	GAZ_ON(); _delay_ms(500); wdt_reset();
-	GAZ_OFF(); _delay_ms(500); wdt_reset();
-	LED_ON(); _delay_ms(500); wdt_reset();
-	LED_OFF(); _delay_ms(500); wdt_reset();
 
 	//DS18B20
 	uint8_t subzero, cel=0, cel_frac_bits;
@@ -106,13 +104,14 @@ int main(void){
 		DS18X20_start_meas( DS18X20_POWER_EXTERN, &gSensorIDs[i][0] );
 	}
 
+	LED_ON(); _delay_ms(500); wdt_reset();
+	//LED_OFF(); _delay_ms(500); wdt_reset();
+	GAZ_ON(); _delay_ms(500); wdt_reset();
+	//GAZ_OFF(); _delay_ms(500); wdt_reset();
+
 	while(1){
 		// reset timer of Watchdog
 		wdt_reset();
-
-			if (TIMER_MINUTE == 0) GAZ_ON();
-			if (TIMER_MINUTE == 10) GAZ_OFF();
-			if (TIMER_MINUTE >= 30) TIMER_MINUTE = 0;
 
 /////////////////////////////////
 		if (FLAG_DS18B20==1) {
@@ -133,6 +132,34 @@ int main(void){
 		}
 //////////////////////////////////
 
+	temp = DS18B20SensorsValues[0];
+
+	if (TIMER_MINUTE == 10 || temp >= 24) GAZ_OFF();
+	if (TIMER_MINUTE >= 30 && temp < 24) {
+		GAZ_ON();
+		TIMER_MINUTE = 0;
 	}
+
+    if (temp < 0) {
+        temp *= -1;
+        LED_ON(); _delay_ms(2500);
+        LED_OFF(); _delay_ms(3000); 
+    };
+
+	for(i = 1; i <= (temp/10); i++) {
+        LED_ON(); _delay_ms(350);
+        LED_OFF(); _delay_ms(350);
+    }
+    
+	_delay_ms(2000);
+    
+	for(i = 1; i <= (temp%10); i++) {
+        LED_ON(); _delay_ms(350);        
+        LED_OFF(); _delay_ms(350);        
+    }
+    _delay_ms(5000);
+      
+////////////////////////////////////////	  
 	return (0);
+	}
 }
