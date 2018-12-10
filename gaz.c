@@ -113,7 +113,7 @@ int main(void){
 		// reset timer of Watchdog
 		wdt_reset();
 
-/////////////////////////////////
+                /////////////////////////////////
 		if (FLAG_DS18B20==1) {
 			if (nSensors > 0) {
 				if ( DS18X20_read_meas( &gSensorIDs[curSensors][0], &subzero, &cel, &cel_frac_bits) == DS18X20_OK ) {
@@ -130,36 +130,35 @@ int main(void){
 			}
 			FLAG_DS18B20=0;
 		}
-//////////////////////////////////
 
-	temp = DS18B20SensorsValues[0];
+		//////////////////////////////////
+		temp = DS18B20SensorsValues[0];
 
-	if (TIMER_MINUTE == 10 || temp >= 24) GAZ_OFF();
-	if (TIMER_MINUTE >= 30 && temp < 24) {
-		GAZ_ON();
-		TIMER_MINUTE = 0;
-	}
+		if (TIMER_MINUTE == 10 || temp >= 24) GAZ_OFF();
+		if (TIMER_MINUTE >= 30 && temp < 24) {
+			GAZ_ON();
+			TIMER_MINUTE = 0;
+		}
 
-    if (temp < 0) {
-        temp *= -1;
-        LED_ON(); _delay_ms(2500);
-        LED_OFF(); _delay_ms(3000); 
-    };
+		if (temp < 0) {
+		        temp *= -1;
+			LED_ON(); _delay_ms(2500);
+			LED_OFF(); _delay_ms(3000); 
+		};
 
-	for(i = 1; i <= (temp/10); i++) {
-        LED_ON(); _delay_ms(350);
-        LED_OFF(); _delay_ms(350);
-    }
+		for(i = 1; i <= (temp/10); i++) {
+        		LED_ON(); _delay_ms(350);
+	        	LED_OFF(); _delay_ms(350);
+		}
     
-	_delay_ms(2000);
+		_delay_ms(2000);
     
-	for(i = 1; i <= (temp%10); i++) {
-        LED_ON(); _delay_ms(350);        
-        LED_OFF(); _delay_ms(350);        
-    }
-    _delay_ms(5000);
+		for(i = 1; i <= (temp%10); i++) {
+        		LED_ON(); _delay_ms(350);        
+		        LED_OFF(); _delay_ms(350);        
+		}
+		_delay_ms(5000);
       
-////////////////////////////////////////	  
-	return (0);
+		return (0);
 	}
 }
